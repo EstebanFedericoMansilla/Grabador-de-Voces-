@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grabador de Voces - TikTok Diálogo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .character-selector {
+            margin-bottom: 20px;
+        }
+        .dialog-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .recording-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #fe2c55;
+            color: white;
+            font-weight: bold;
+        }
+        button:disabled {
+            background: #ccc;
+        }
+        .character-line {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .pua-rigi {
+            background: #e1f5fe;
+        }
+        .rosalia {
+            background: #fce4ec;
+        }
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .recordings {
+            margin-top: 20px;
+        }
+        .recording-item {
+            background: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grabador de Voces - Diálogo TikTok</h1>
+        
+        <div class="character-selector">
+            <label for="character">Selecciona tu personaje:</label>
+            <select id="character">
+                <option value="pua-rigi">Pua Rigi</option>
+                <option value="rosalia">Rosalia</option>
+            </select>
+        </div>
+
+        <div class="dialog-display">
+            <h2>Diálogo</h2>
+            <div class="character-line pua-rigi">
+                <strong>Pua Rigi:</strong> (afinando la guitarra) "¡Esta va a ser mi gran noche! ¡El concierto que me hará famoso!"
+            </div>
+            <div class="character-line rosalia">
+                <strong>Rosalia:</strong> (interrumpiendo) "¡Oye! ¿Podrías bajar un poco el volumen? ¡Estoy tratando de grabar mi TikTok!"
+            </div>
+            <div class="character-line pua-rigi">
+                <strong>Pua Rigi:</strong> (sarcásticamente) "¡Oh, perdón! No sabía que tus bailes eran más importantes que mi futuro como estrella de rock"
+            </div>
+            <div class="character-line rosalia">
+                <strong>Rosalia:</strong> (bailando) "¡Al menos yo tengo ritmo! Tú suenas como una aspiradora en modo turbo"
+            </div>
+            <div class="character-line pua-rigi">
+                <strong>Pua Rigi:</strong> (intentando un solo de guitarra que sale mal) "¡Ups!"
+            </div>
+            <div class="character-line rosalia">
+                <strong>Rosalia:</strong> (riendo) "¿Ves? ¡Hasta la aspiradora tiene mejor ritmo!"
+            </div>
+            <div class="character-line pua-rigi">
+                <strong>Pua Rigi:</strong> "¿Y si hacemos un dueto?"
+            </div>
+            <div class="character-line rosalia">
+                <strong>Rosalia:</strong> "¡Solo si prometes no romper más cuerdas!"
+            </div>
+        </div>
+
+        <div class="recording-controls">
+            <button id="startRecording">🎤 Iniciar Grabación</button>
+            <button id="stopRecording" disabled>⏹️ Detener Grabación</button>
+        </div>
+
+        <div class="recordings">
+            <h2>Tus Grabaciones</h2>
+            <div id="recordingsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        const startRecordingButton = document.getElementById('startRecording');
+        const stopRecordingButton = document.getElementById('stopRecording');
+        const recordingsList = document.getElementById('recordingsList');
+
+        startRecordingButton.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const character = document.getElementById('character').value;
+                    
+                    const recordingItem = document.createElement('div');
+                    recordingItem.className = 'recording-item';
+                    recordingItem.innerHTML = `
+                        <span>${character === 'pua-rigi' ? 'Pua Rigi' : 'Rosalia'} - ${new Date().toLocaleTimeString()}</span>
+                        <audio controls src="${audioUrl}"></audio>
+                    `;
+                    
+                    recordingsList.appendChild(recordingItem);
+                    audioChunks = [];
+                };
+
+                mediaRecorder.start();
+                startRecordingButton.disabled = true;
+                stopRecordingButton.disabled = false;
+            } catch (error) {
+                console.error('Error al acceder al micrófono:', error);
+                alert('No se pudo acceder al micrófono. Por favor, asegúrate de dar permiso para usar el micrófono.');
+            }
+        });
+
+        stopRecordingButton.addEventListener('click', () => {
+            mediaRecorder.stop();
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+        });
+    </script>
+</body>
+</html>
